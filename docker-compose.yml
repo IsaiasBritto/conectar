@@ -1,48 +1,110 @@
+###############################################
+#Arquivo docker-compose.yml
+#Arquivo de orquestração Docker que define e configura os serviços necessários para rodar sua aplicação e o ecossistema de monitoramento/logging:
+
+#Elasticsearch: Armazena e indexa os dados de logs e métricas.
+#Kibana: Interface visual para consultar dados do Elasticsearch.
+#Logstash: Pipeline que recebe, processa e envia logs para o Elasticsearch.
+#Filebeat: Agente que coleta logs de arquivos e envia para o Logstash.
+#Grafana: Dashboard para visualização de métricas e gráficos.
+#Prometheus: Sistema de monitoramento e coleta de métricas.
+#springapp: Sua aplicação Spring Boot.
+#redes (networks) e volumes: Definem comunicação entre containers e armazenamento persistente.
+###############################################
+
 services:
   elasticsearch:
-    image: elasticsearch:8.12.2
+    # Imagem do Elasticsearch (versão anterior comentada)
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - bootstrap.memory_lock=true               # Evita swap de memória
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m          # Define heap size da JVM
+      - discovery.type=single-node              # Define como instância standalone
+      - xpack.security.enabled=false            # Desativa autenticação e segurança do X-Pack
     ports:
-      - 9200:9200
-      - 9300:9300
+      - 9200:9200                               # Porta HTTP da API do Elasticsearch
+      #- 9300:9300                              # Comentado: porta para comunicação entre nós do cluster
     volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
+      - elasticsearch-data:/usr/share/elasticsearch/data  # Persistência de dados
+    networks:
+      - elk                                     # Usa rede virtual `elk`
+
+  kibana:
+    # Imagem do Kibana (anterior comentada)
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    ports:
+      - 5601:5601                               # Porta da interface web do Kibana
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200       # Conexão com Elasticsearch
+      - ELASTICSEARCH_HOSTS="http://elasticsearch:9200"
+    depends_on:
+      - elasticsearch                           # Sobe somente após o Elasticsearch
+    networks:
+      - elk
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.13.4
+    volumes:
+    - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml  # Configuração do Logstash
+    - ./logstash/pipeline:/usr/share/logstash/pipeline                        # Diretório com pipelines
+    ports:
+      - "5044:5044"                              # Porta usada pelo Filebeat (input)
+      - "5000:5000/tcp"                          # Exemplo de porta para entrada TCP
+      - "5000:5000/udp"                          # Exemplo de porta para entrada UDP
+      - "9600:9600"                              # Porta de monitoramento do Logstash
+    environment:
+      - LS_JAVA_OPTS=-Xms512m -Xmx512m           # Heap size da JVM do Logstash
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.13.4
+    user: root                                   # Necessário para ler arquivos com permissões de root
+    volumes:
+      - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml   # Configuração do Filebeat
+      - ./logs:/app/logs                                        # Pasta de logs da aplicação
+    depends_on:
+      - logstash                                 # Filebeat espera Logstash
+    networks:
+      - elk
 
   grafana:
     image: grafana/grafana:latest
     ports:
-      - 3000:3000
+      - 3000:3000                                # Porta da interface web do Grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin         # Senha padrão do admin (dev)
     depends_on:
-      - prometheus
+      - prometheus                               # Espera Prometheus subir
     networks:
       - elk
 
-  kibana:
-    image: kibana:8.12.2
-    ports:
-      - 5601:5601
-    depends_on:
-      - elasticsearch
-
   prometheus:
-    image: prom/prometheus:latest #v2.46.0
+    image: prom/prometheus:latest                # Imagem oficial do Prometheus
     volumes: 
-      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml  # Configuração do Prometheus
+      - prometheus-data:/prometheus             # Volume para persistência de métricas
     ports:
-      - 9090:9090
+      - 9090:9090                                # Interface web do Prometheus
     networks:
-    - elk
-    
-volumes:
-  elasticsearch-data:
-  prometheus-data:
+      - elk
 
+  springapp:
+    build: .                                     # Constrói a imagem da aplicação localmente (com Dockerfile no diretório atual)
+    depends_on:
+      - logstash                                 # Espera Logstash estar pronto
+    networks:
+      - elk
+
+# Definição da rede usada por todos os serviços
 networks:
   elk:
     driver: bridge
+
+# Volumes para persistência de dados
+volumes:
+  elasticsearch-data:
+    driver: local
+  prometheus-data:

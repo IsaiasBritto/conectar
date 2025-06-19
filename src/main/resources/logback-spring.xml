@@ -1,0 +1,56 @@
+<!--
+###############################################
+#Arquivo logback-spring.xml
+#Configuração do framework de logging Logback para sua aplicação Spring Boot:
+#Define appenders para enviar logs:
+# - Para o console (sempre).
+# - Para o Logstash (via TCP), exceto em ambiente de testes.
+#Define perfis Spring (!test e test) para separar comportamento de logging entre desenvolvimento/produção e testes.
+#Usa encoder JSON para integração com Logstash.
+###############################################
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" debug="false">
+
+    <!-- Obtém a propriedade spring.application.name do contexto do Spring e armazena na variável APP_NAME -->
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name"/>
+
+    <!-- Appender para saída no console -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- Formato da mensagem de log no console: data, thread, nível do log, logger e mensagem -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Configuração específica para perfis Spring diferentes -->
+    
+    <!-- Perfil para ambientes que NÃO são de teste -->
+    <springProfile name="!test">
+        <!-- Appender para envio dos logs ao Logstash via TCP -->
+        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <!-- Endereço do Logstash no Docker Compose -->
+            <destination>logstash:5000</destination>
+            <!-- Encoder que converte logs no formato JSON para o Logstash -->
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        </appender>
+
+        <!-- Logger raiz para o perfil normal (não test), com nível INFO -->
+        <root level="INFO">
+            <!-- Envia os logs para o console -->
+            <appender-ref ref="STDOUT"/>
+            <!-- Envia os logs também para o Logstash -->
+            <appender-ref ref="LOGSTASH"/>
+        </root>
+    </springProfile>
+
+    <!-- Perfil para ambiente de teste -->
+    <springProfile name="test">
+        <!-- Logger raiz para testes, nível INFO -->
+        <root level="INFO">
+            <!-- Envia os logs somente para o console, sem enviar ao Logstash -->
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
+
+</configuration>
