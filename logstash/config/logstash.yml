@@ -1,7 +1,18 @@
+###############################################
+# Arquivo logstash.yml
+# Configuração básica do Logstash:
+###############################################
 
+# Define o endereço de rede onde o Logstash vai escutar conexões HTTP para status, métricas e APIs.
+http.host: "0.0.0.0"  
+# -> "0.0.0.0" indica que o Logstash aceitará conexões de qualquer IP (ou seja, de dentro e fora do container).
 
-http.host: "0.0.0.0"
-path.config: /usr/share/logstash/pipeline
-xpack.monitoring.elasticsearch.hosts: ["localhost:9200"]
+# Caminho para os arquivos de pipeline (entrada/processamento/saída de dados).
+path.config: /usr/share/logstash/pipeline  
+# -> Aqui está especificado o diretório onde ficam os arquivos `.conf` que definem o fluxo de dados (ex: logstash.conf).
 
-
+# Endereço do Elasticsearch para onde o Logstash enviará dados de monitoramento interno.
+xpack.monitoring.elasticsearch.hosts: ["localhost:9200"]  
+# -> "localhost:9200" assume que o Elasticsearch está rodando no mesmo container do Logstash.
+# -> MAS como você está usando Docker Compose, o ideal seria trocar por o nome do serviço no Compose, ou seja:
+# xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch:9200"]

@@ -1,10 +1,22 @@
-global:
-  scrape_interval: "5s"
+###############################################
+#Arquivo prometheus.yml
+#Configuração do Prometheus para definir como e de onde ele coleta métricas:
+#Define o intervalo de coleta das métricas (scrape_interval).
+#Configura jobs de coleta (ex: api-products) com endereço e caminho para os endpoints que expõem métricas (ex: /actuator/prometheus).
+###############################################
 
+
+# Configurações globais para o Prometheus
+global:
+  scrape_interval: "5s"              # Intervalo global de coleta: a cada 5 segundos
+
+# Bloco que define os alvos de monitoramento
 scrape_configs:
-  - job_name: "api-products"
-    metrics_path: /actuator/prometheus #metrics
-    static_configs:
-      - targets: ["host.docker.internal:8080"]
+  - job_name: "api-products"         # Nome do job que será exibido na interface do Prometheus
+
+    metrics_path: /actuator/prometheus # Caminho onde os dados de métricas serão coletados (Spring Boot Actuator)
+
+    static_configs:                  # Define os alvos de forma estática (sem autodiscovery)
+      - targets: ["host.docker.internal:8080"] # Endereço da aplicação Spring Boot (acessível do container Prometheus)
         labels:
-          application: "api-products"
+          application: "api-products" # Rótulo adicional para organizar/filtrar métricas por aplicação

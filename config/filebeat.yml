@@ -1,10 +1,30 @@
+###############################################
+#Arquivo filebeat.yml
+#O arquivo filebeat.yml é o arquivo de configuração do Filebeat, um agente leve para envio de logs. 
+#Ele define como o Filebeat deve coletar, processar e encaminhar os arquivos de log para destinos como Logstash, 
+#Elasticsearch ou outros sistemas de análise de logs.
+
+#Basicamente, o filebeat.yml especifica:
+# - Quais arquivos de log monitorar (caminhos e padrões de arquivos),
+# - Como interpretar os logs (configurações de multiline, codecs, etc.),
+# - Para onde enviar os dados coletados (endereço do Logstash, Elasticsearch, Kafka, etc.),
+# - Configurações adicionais de performance, segurança e processamento.
+#Com essa configuração, o Filebeat atua como uma ponte entre as aplicações que geram logs e as ferramentas de 
+#monitoramento e análise, garantindo coleta eficiente e em tempo real dos dados.
+###############################################
+
+
+# Desativa a verificação estrita de permissões de arquivos de configuração.
+# Útil em ambientes como Docker, onde permissões podem ser mais permissivas.
 strict.perms: false
 
+# Define os inputs (entradas) que o Filebeat irá monitorar
 filebeat.inputs:
-  - type: log
-    enabled: true
+  - type: log                 # Tipo de input: arquivos de log
+    enabled: true             # Habilita esse input
     paths:
-      - /app/logs/*.log
+      - /app/logs/*.log       # Caminho dos arquivos de log a serem monitorados dentro do container
 
+# Define a saída (output) dos dados coletados: Logstash
 output.logstash:
-  hosts: ["logstash:5044"]
+  hosts: ["logstash:5044"]    # Endereço e porta do serviço Logstash para onde os logs serão enviados
