@@ -2,75 +2,90 @@ package br.com.aulaelasticsearch.conectar.controller;
 
 import br.com.aulaelasticsearch.conectar.document.Product;
 import br.com.aulaelasticsearch.conectar.service.ProductService;
-
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/product")
 @RequiredArgsConstructor
+@Slf4j
 public class ProductController {
 
-    @Autowired
     private final ProductService productService;
 
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public void create(@RequestBody Product _product) {
-        productService.createProduct(_product);
+    @ResponseStatus(HttpStatus.CREATED)
+    public void create(@RequestBody Product product) {
+        productService.createProduct(product);
+        log.info("Produto criado: {}", product);
     }
 
+    @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PostMapping("/id/{id}")
-    public void update(@RequestBody Product _product, @PathVariable String id) {
-        productService.updateProduct(_product, id);
+    public void update(@RequestBody Product product, @PathVariable String id) {
+        productService.updateProduct(product, id);
+        log.info("Produto atualizado (ID: {}): {}", id, product);
     }
-    /*
-     * @ResponseStatus(HttpStatus.OK)
-     * 
-     * @GetMapping("/name/{name}")
-     * public void findByName(@PathVariable String name) {
-     * productService.findByName(name);
-     * }
-     */
 
-    @ResponseStatus(HttpStatus.OK)
     @GetMapping("/name/{name}")
+    @ResponseStatus(HttpStatus.OK)
     public Page<Product> findByName(@PathVariable String name) {
+        log.info("Buscando produtos com nome: {}", name);
         return productService.findByName(name);
     }
 
-    @ResponseStatus(HttpStatus.OK)
     @GetMapping("/findById/{id}")
-    public void findById(@PathVariable String id) {
-        productService.findById(id);
+    @ResponseStatus(HttpStatus.OK)
+    public Page<Product> findById(@PathVariable String id) {
+        log.info("Buscando produto por ID: {}", id);
+        return productService.findById(id);
     }
 
-    @ResponseStatus(HttpStatus.OK)
     @GetMapping("/findAll")
+    @ResponseStatus(HttpStatus.OK)
     public Iterable<Product> getAll() {
+        log.info("Buscando todos os produtos");
         return productService.findAll();
     }
 
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping("/{id}")
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProduct(@PathVariable String id) {
         productService.deleteProduct(id);
+        log.info("Produto deletado (ID: {})", id);
+    }
 
+    @GetMapping("/")
+    public String homePage() {
+        log.info("Acessou a página inicial da API");
+        return "Seja bem-vindo à API em Java com Spring Boot";
+    }
+
+    @GetMapping("/logs")
+    public String logPage() {
+        log.info("Teste de geração de log para integração com Filebeat/Logstash");
+        return "Log registrado com sucesso!";
+    }
+
+    @GetMapping("/waring")
+    public String warngPage() {
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+
+        log.warn("Log:" + localDateTime);
+        return "Bem vindo a página de Warning!";
+    }
+
+    @GetMapping("/er")
+    public String errorPage() {
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+
+        log.error("This error page:" + localDateTime);
+        return "Bem vindo a página de Error!";
     }
 }

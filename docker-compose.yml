@@ -1,15 +1,61 @@
 services:
   elasticsearch:
-    image: elasticsearch:8.12.2
+    #image: elasticsearch:8.12.2
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     environment:
+      - bootstrap.memory_lock=true
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ports:
       - 9200:9200
-      - 9300:9300
+      #- 9300:9300
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - elk
+
+  kibana:
+    #image: kibana:8.12.2
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    ports:
+      - 5601:5601
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_HOSTS="http://elasticsearch:9200"
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.13.4
+    volumes:
+    - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+    - ./logstash/pipeline:/usr/share/logstash/pipeline
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    environment:
+      - LS_JAVA_OPTS=-Xms512m -Xmx512m
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.13.4
+    user: root
+    volumes:
+      - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./logs:/app/logs
+    depends_on:
+      - logstash
+    networks:
+      - elk
+
 
   grafana:
     image: grafana/grafana:latest
@@ -22,13 +68,6 @@ services:
     networks:
       - elk
 
-  kibana:
-    image: kibana:8.12.2
-    ports:
-      - 5601:5601
-    depends_on:
-      - elasticsearch
-
   prometheus:
     image: prom/prometheus:latest #v2.46.0
     volumes: 
@@ -38,11 +77,20 @@ services:
       - 9090:9090
     networks:
     - elk
-    
-volumes:
-  elasticsearch-data:
-  prometheus-data:
+
+  springapp:
+    build: .
+    depends_on:
+      - logstash
+    networks:
+      - elk
+
 
 networks:
   elk:
     driver: bridge
+
+volumes:
+  elasticsearch-data:
+    driver: local
+  prometheus-data:
