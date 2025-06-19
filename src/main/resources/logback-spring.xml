@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 ###############################################
 #Arquivo logback-spring.xml
@@ -9,7 +10,7 @@
 #Usa encoder JSON para integração com Logstash.
 ###############################################
 -->
-<?xml version="1.0" encoding="UTF-8"?>
+
 <configuration scan="true" debug="false">
 
     <!-- Obtém a propriedade spring.application.name do contexto do Spring e armazena na variável APP_NAME -->
