@@ -15,6 +15,7 @@ Este projeto demonstra uma aplicação Java Spring Boot integrada com a stack **
 - **Docker & Docker Compose**
 - **Micrometer + Spring Boot Actuator**
 - **Logback + Logstash Encoder**
+- **Monitoramento com o SonarQube**
 
 ---
 
@@ -144,3 +145,4 @@ mvn test
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+
