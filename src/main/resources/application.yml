@@ -18,3 +18,7 @@ management:
       # Configura o endpoint health para sempre mostrar detalhes completos no retorno,
       # útil para monitoramento detalhado do estado da aplicação
       show-details: always
+
+spring:
+  elasticsearch:
+    uris: http://elasticsearch:9200
