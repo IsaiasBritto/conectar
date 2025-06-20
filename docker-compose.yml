@@ -24,6 +24,11 @@ services:
     ports:
       - 9200:9200                               # Porta HTTP da API do Elasticsearch
       #- 9300:9300                              # Comentado: porta para comunicação entre nós do cluster
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200 | grep -q 'cluster_name'"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data  # Persistência de dados
     networks:
@@ -52,6 +57,11 @@ services:
       - "5000:5000/tcp"                          # Exemplo de porta para entrada TCP
       - "5000:5000/udp"                          # Exemplo de porta para entrada UDP
       - "9600:9600"                              # Porta de monitoramento do Logstash
+    healthcheck:
+      test: curl --silent --fail localhost:9600 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       - LS_JAVA_OPTS=-Xms512m -Xmx512m           # Heap size da JVM do Logstash
     depends_on:
@@ -63,8 +73,8 @@ services:
     image: docker.elastic.co/beats/filebeat:8.13.4
     user: root                                   # Necessário para ler arquivos com permissões de root
     volumes:
-      - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml   # Configuração do Filebeat
-      - ./logs:/app/logs                                        # Pasta de logs da aplicação
+      - ./config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro   # Configuração do Filebeat
+      - ./logs:/app/logs                                            # Pasta de logs da aplicação
     depends_on:
       - logstash                                 # Filebeat espera Logstash
     networks:
@@ -94,7 +104,19 @@ services:
   springapp:
     build: .                                     # Constrói a imagem da aplicação localmente (com Dockerfile no diretório atual)
     depends_on:
-      - logstash                                 # Espera Logstash estar pronto
+      elasticsearch:
+        condition: service_healthy
+      logstash:
+        condition: service_healthy
+    healthcheck:
+      test: curl -s http://localhost:9200 | grep -q 'cluster_name'
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    ports:
+      - "8080:8080"
+    restart: on-failure
+      #- logstash                                 # Espera Logstash estar pronto
     networks:
       - elk
 
