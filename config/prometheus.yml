@@ -18,5 +18,6 @@ scrape_configs:
 
     static_configs:                  # Define os alvos de forma estática (sem autodiscovery)
       - targets: ["host.docker.internal:8080"] # Endereço da aplicação Spring Boot (acessível do container Prometheus)
+      #- targets: ["localhost:8080"] # Para rodar localmente, descomente esta linha e comente a anterior
         labels:
           application: "api-products" # Rótulo adicional para organizar/filtrar métricas por aplicação

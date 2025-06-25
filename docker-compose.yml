@@ -25,7 +25,7 @@ services:
       - 9200:9200                               # Porta HTTP da API do Elasticsearch
       #- 9300:9300                              # Comentado: porta para comunicação entre nós do cluster
     healthcheck:
-      test: ["CMD-SHELL", "curl -s http://localhost:9200 | grep -q 'cluster_name'"]
+      test: ["CMD-SHELL", "curl -s http://elasticsearch:9200 | grep -q 'cluster_name'"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -109,7 +109,7 @@ services:
       logstash:
         condition: service_healthy
     healthcheck:
-      test: curl -s http://localhost:9200 | grep -q 'cluster_name'
+      test: curl -s http://elasticsearch:9200 | grep -q 'cluster_name'
       interval: 5s
       timeout: 5s
       retries: 20

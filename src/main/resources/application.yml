@@ -4,7 +4,10 @@
 # - Expõe endpoints de saúde, métricas e integração com Prometheus via web.
 # - Configura detalhes do endpoint de saúde para mostrar sempre os detalhes.
 ###############################################
-
+spring:
+  elasticsearch:
+    uris: http://elasticsearch:9200
+    
 management:
   endpoints:
     web:
@@ -12,6 +15,8 @@ management:
         # Define quais endpoints de gerenciamento (actuator) estarão expostos via HTTP
         # Aqui estão expostos os endpoints de health (saúde), metrics (métricas) e prometheus (métricas no formato Prometheus)
         include: 'health, metrics, prometheus'  # Pode usar '*' para expor todos os endpoints
+        #include: '*'
+        
 
   endpoint:
     health:
@@ -19,6 +24,3 @@ management:
       # útil para monitoramento detalhado do estado da aplicação
       show-details: always
 
-spring:
-  elasticsearch:
-    uris: http://elasticsearch:9200

@@ -67,17 +67,31 @@ cd ..
 docker-compose up --build
 ```
 
+```powershell
+git clone https://github.com/IsaiasBritto/conectar.git
+cd conectar
+
+# 2. Gere o JAR da aplicação
+cd conectar
+./mvnw clean verify
+./mvnw spring-boot:run
+
+# 3. Volte ao diretório raiz e suba os containers
+docker-compose up --build
+```
+
 ---
 
 ## 🔍 Acessos e Endpoints
 
-| Serviço        | URL                                 |
+| Serviço        | URL                                  |
 |----------------|--------------------------------------|
 | API Spring     | http://localhost:8080/api/product    |
 | Kibana         | http://localhost:5601                |
 | Elasticsearch  | http://localhost:9200                |
 | Prometheus     | http://localhost:9090                |
 | Grafana        | http://localhost:3000 (admin/admin)  |
+|----------------|--------------------------------------|
 
 ---
 
@@ -96,10 +110,16 @@ docker-compose up --build
 ```bash
 curl -X POST http://localhost:8080/api/product  -H "Content-Type: application/json"  -d '{"id":"1", "name":"Produto A", "price":99.90}'
 ```
+```powershell
+curl -Method POST http://localhost:8080/api/product -Headers @{ "Content-Type" = "application/json" } -Body '{ "id": "1", "name": "Produto A", "price": 99.90 }'
+```
 
 ### Buscar produto por nome
 ```bash
 curl http://localhost:8080/api/product/name/Produto%20A
+```
+```powershell
+curl -Method GET http://localhost:8080/api/product/name/Produto%20A
 ```
 
 ---
@@ -131,7 +151,9 @@ A aplicação possui testes automatizados com `SpringBootTest`. Execute com:
 ```bash
 mvn test
 ```
-
+```powershell
+./mvnw test
+```
 ---
 
 ## 👨‍💻 Autor
