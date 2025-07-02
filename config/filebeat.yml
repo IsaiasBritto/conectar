@@ -28,3 +28,4 @@ filebeat.inputs:
 # Define a saída (output) dos dados coletados: Logstash
 output.logstash:
   hosts: ["logstash:5044"]    # Endereço e porta do serviço Logstash para onde os logs serão enviados
+

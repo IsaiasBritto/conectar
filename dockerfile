@@ -18,11 +18,17 @@ WORKDIR /app
 # Copia o JAR gerado pelo Maven da máquina host para o diretório /app do container
 COPY target/conectar-0.0.1-SNAPSHOT.jar app.jar
 
+# Copia o script de inicialização
+#COPY entrypoint.sh /entrypoint.sh
+
 # Copia o script de espera pelo Elasticsearch
 COPY entrypoint.sh .
 
 # Dá permissão de execução ao script
 RUN chmod +x entrypoint.sh
+
+# Expõe a porta que a aplicação utiliza
+EXPOSE 8080
 
 # Usa o script como ponto de entrada
 ENTRYPOINT ["./entrypoint.sh"]
