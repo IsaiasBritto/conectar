@@ -31,7 +31,8 @@
         <!-- Appender para envio dos logs ao Logstash via TCP -->
         <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
             <!-- Endereço do Logstash no Docker Compose -->
-            <destination>logstash:5000</destination>
+            <destination>logstash:5044</destination>
+            <!--<destination>logstash:5000</destination>-->
             <!-- Encoder que converte logs no formato JSON para o Logstash -->
             <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
         </appender>
